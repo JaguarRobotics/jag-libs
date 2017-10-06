@@ -1,0 +1,27 @@
+apply plugin: "eclipse"
+apply plugin: "java"
+
+repositories {
+    maven {
+        url "http://first.wpi.edu/FRC/roborio/maven/release/"
+    }
+}
+
+dependencies {
+    compile "edu.wpi.first.wpilib.networktables.java:NetworkTables:3.0.0-SNAPSHOT"
+    compile "edu.wpi.first.wpilibj:wpilibJavaFinal:0.1.0-SNAPSHOT"
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = [ "src/" ]
+        }
+    }
+}
+
+eclipse {
+    project {
+        natures "edu.wpi.first.wpilib.plugins.core.nature.FRCProjectNature"
+    }
+}
