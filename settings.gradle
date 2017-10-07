@@ -1,1 +1,3 @@
-include "example"
+if (new File("build/libs/plugin.jar").exists()) {
+	include "example"
+}
