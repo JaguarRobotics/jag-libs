@@ -1,0 +1,12 @@
+buildscript {
+	dependencies {
+		classpath files("../build/libs/plugin.jar")
+	}
+}
+
+apply plugin: "java"
+apply plugin: "com.github.jaguarrobotics.jaglibs"
+
+jaglibs {
+	teamNumber = 1810
+}

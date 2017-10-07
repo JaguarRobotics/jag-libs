@@ -2,26 +2,35 @@ apply plugin: "eclipse"
 apply plugin: "java"
 
 repositories {
+	mavenCentral()
     maven {
         url "http://first.wpi.edu/FRC/roborio/maven/release/"
     }
 }
 
+sourceSets {
+    plugin
+}
+
 dependencies {
     compile "edu.wpi.first.wpilib.networktables.java:NetworkTables:3.0.0-SNAPSHOT"
     compile "edu.wpi.first.wpilibj:wpilibJavaFinal:0.1.0-SNAPSHOT"
+    pluginCompile gradleApi()
+    pluginCompile "com.jcraft:jsch:0.1.54"
 }
 
-sourceSets {
-    main {
-        java {
-            srcDirs = [ "src/" ]
-        }
-    }
+task pluginJar(type: Jar) {
+	baseName = "plugin"
+	from sourceSets.plugin.output
+	dependsOn pluginClasses
+}
+
+build {
+	dependsOn pluginJar
 }
 
 eclipse {
-    project {
-        natures "edu.wpi.first.wpilib.plugins.core.nature.FRCProjectNature"
-    }
+	classpath {
+		plusConfigurations << configurations.pluginCompile
+	}
 }
