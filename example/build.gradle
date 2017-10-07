@@ -5,7 +5,14 @@ buildscript {
 }
 
 apply plugin: "java"
+apply plugin: "eclipse"
 apply plugin: "com.github.jaguarrobotics.jaglibs"
+
+eclipse {
+	project {
+		name = "JagLibs Example"
+	}
+}
 
 jaglibs {
 	teamNumber = 1810

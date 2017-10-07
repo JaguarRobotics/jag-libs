@@ -13,8 +13,6 @@ sourceSets {
 }
 
 dependencies {
-    compile "edu.wpi.first.wpilib.networktables.java:NetworkTables:3.0.0-SNAPSHOT"
-    compile "edu.wpi.first.wpilibj:wpilibJavaFinal:0.1.0-SNAPSHOT"
     pluginCompile gradleApi()
     pluginCompile "com.jcraft:jsch:0.1.54"
 }
@@ -33,4 +31,7 @@ eclipse {
 	classpath {
 		plusConfigurations << configurations.pluginCompile
 	}
+    project {
+        name = "JagLibs Core"
+    }
 }

@@ -1,3 +1,5 @@
-if (new File("build/libs/plugin.jar").exists()) {
+include "bootstrap"
+
+if (new File(rootDir, "build/libs/plugin.jar").exists()) {
 	include "example"
 }
