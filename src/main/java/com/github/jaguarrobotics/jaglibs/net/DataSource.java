@@ -1,5 +1,6 @@
 package com.github.jaguarrobotics.jaglibs.net;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
@@ -75,21 +76,25 @@ public class DataSource {
         onRaw(proxy.value);
     }
 
-    public void emit(byte[] value, int qos, boolean retain) throws MqttException {
+    public void emit(byte[] value, int qos, boolean retain) throws IOException {
         if (value == null) {
             throw new IllegalArgumentException("value cannot be null");
         }
         if (qos < 0 || qos > 2) {
             throw new IllegalArgumentException("Invalid QoS value");
         }
-        client.client.getTopic(topic).publish(value, qos, retain);
+        try {
+            client.client.getTopic(topic).publish(value, qos, retain);
+        } catch (MqttException ex) {
+            throw new IOException(ex);
+        }
     }
 
-    public void emit(byte[] value) throws MqttException {
+    public void emit(byte[] value) throws IOException {
         emit(value, 2, false);
     }
 
-    public void emit(RealCoordinate value) throws MqttException {
+    public void emit(RealCoordinate value) throws IOException {
         if (value == null) {
             throw new IllegalArgumentException("value cannot be null");
         }
@@ -109,11 +114,15 @@ public class DataSource {
         client.client.unsubscribe(topic);
     }
 
-    DataSource(NetClient client, String topic) throws MqttException {
+    DataSource(NetClient client, String topic) throws IOException {
         this.client = client;
         this.topic = topic;
         callbacks = new HashSet<Consumer<RealCoordinate>>();
         rawCallbacks = new HashSet<Consumer<byte[]>>();
-        client.client.subscribe(topic, 2);
+        try {
+            client.client.subscribe(topic, 2);
+        } catch (MqttException ex) {
+            throw new IOException(ex);
+        }
     }
 }

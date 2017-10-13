@@ -1,5 +1,6 @@
 package com.github.jaguarrobotics.jaglibs.net;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,7 +49,7 @@ public class NetClient implements AutoCloseable, MqttCallback {
     public void deliveryComplete(IMqttDeliveryToken token) {
     }
 
-    public DataSource subscribe(String topic) throws MqttException {
+    public DataSource subscribe(String topic) throws IOException {
         WeakReference<DataSource> ref;
         DataSource src;
         if (dataSources.containsKey(topic)) {
@@ -67,14 +68,18 @@ public class NetClient implements AutoCloseable, MqttCallback {
         return src;
     }
 
-    public NetClient(String host) throws MqttException {
-        client = new MqttClient(String.format("tcp://%s:1883", host), MqttClient.generateClientId(),
-                        new MemoryPersistence());
-        dataSources = Collections.synchronizedMap(new HashMap<String, WeakReference<DataSource>>());
-        strongReferences = Collections.synchronizedSet(new HashSet<DataSource>());
-        MqttConnectOptions opts = new MqttConnectOptions();
-        opts.setCleanSession(true);
-        client.connect(opts);
-        client.setCallback(this);
+    public NetClient(String host) throws IOException {
+        try {
+            client = new MqttClient(String.format("tcp://%s:1883", host), MqttClient.generateClientId(),
+                            new MemoryPersistence());
+            dataSources = Collections.synchronizedMap(new HashMap<String, WeakReference<DataSource>>());
+            strongReferences = Collections.synchronizedSet(new HashSet<DataSource>());
+            MqttConnectOptions opts = new MqttConnectOptions();
+            opts.setCleanSession(true);
+            client.connect(opts);
+            client.setCallback(this);
+        } catch (MqttException ex) {
+            throw new IOException(ex);
+        }
     }
 }
