@@ -1,6 +1,7 @@
 package com.github.jaguarrobotics.jaglibs;
 
 import java.util.Scanner;
+import com.github.jaguarrobotics.jaglibs.mqtt.MQTTServer;
 
 public class Robot implements IIterativeRobot {
     private MQTTServer server;

@@ -1,4 +1,4 @@
-package com.github.jaguarrobotics.jaglibs;
+package com.github.jaguarrobotics.jaglibs.mqtt;
 
 import java.util.Properties;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;

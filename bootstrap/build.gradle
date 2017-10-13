@@ -20,10 +20,10 @@ dependencies {
     compile "edu.wpi.first.wpilib.networktables.java:NetworkTables:3.0.0-SNAPSHOT"
     compile "edu.wpi.first.wpilibj:wpilibJavaFinal:0.1.0-SNAPSHOT"
     library "io.moquette:moquette-broker:0.10"
-    library "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.0.2"
     library "org.apache.logging.log4j:log4j-api:2.9.1"
     library "org.apache.logging.log4j:log4j-core:2.9.1"
     library "org.apache.logging.log4j:log4j-slf4j-impl:2.9.1"
+    library rootProject
 }
 
 sourceSets {
