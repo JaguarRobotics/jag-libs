@@ -15,10 +15,10 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 public class NetClient implements AutoCloseable, MqttCallback {
-    final MqttClient client;
+    final MqttClient                             client;
     final Map<String, WeakReference<DataSource>> dataSources;
-    final Set<DataSource> strongReferences;
-    
+    final Set<DataSource>                        strongReferences;
+
     @Override
     public void close() throws Exception {
         client.disconnect();
@@ -47,7 +47,7 @@ public class NetClient implements AutoCloseable, MqttCallback {
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {
     }
-    
+
     public DataSource subscribe(String topic) throws MqttException {
         WeakReference<DataSource> ref;
         DataSource src;
@@ -66,9 +66,10 @@ public class NetClient implements AutoCloseable, MqttCallback {
         }
         return src;
     }
-    
+
     public NetClient(String host) throws MqttException {
-        client = new MqttClient(host, MqttClient.generateClientId(), new MemoryPersistence());
+        client = new MqttClient(String.format("tcp://%s:1883", host), MqttClient.generateClientId(),
+                        new MemoryPersistence());
         dataSources = Collections.synchronizedMap(new HashMap<String, WeakReference<DataSource>>());
         strongReferences = Collections.synchronizedSet(new HashSet<DataSource>());
         MqttConnectOptions opts = new MqttConnectOptions();
