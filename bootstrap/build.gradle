@@ -2,14 +2,24 @@ apply plugin: "eclipse"
 apply plugin: "java"
 
 repositories {
+	jcenter()
     maven {
         url "http://first.wpi.edu/FRC/roborio/maven/release/"
     }
+    maven {
+    	url "https://repo.eclipse.org/content/repositories/paho-releases"
+    }
+}
+
+configurations {
+	library
 }
 
 dependencies {
     compile "edu.wpi.first.wpilib.networktables.java:NetworkTables:3.0.0-SNAPSHOT"
     compile "edu.wpi.first.wpilibj:wpilibJavaFinal:0.1.0-SNAPSHOT"
+    library "io.moquette:moquette-broker:0.10"
+    library "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.0.2"
 }
 
 sourceSets {
@@ -19,10 +29,14 @@ sourceSets {
                 "src/"
             ]
         }
+        compileClasspath += configurations.library
     }
 }
 
 eclipse {
+	classpath {
+		plusConfigurations << configurations.library
+	}
     project {
         name = "JagLibs Bootstrap"
         natures "edu.wpi.first.wpilib.plugins.core.nature.FRCProjectNature"
@@ -30,5 +44,18 @@ eclipse {
 }
 
 ant.importBuild("build.xml") { target ->
-    target == "deploy" ? "deploy" : "wpi-" + target
+    target == "deploy" ? "deploy" : "wpi_" + target
+}
+
+task copyLibs(type: Copy) {
+	from configurations.library
+	into System.getProperty("user.home") + "/wpilib/user/java/lib"
+}
+
+wpi_compile {
+	dependsOn copyLibs
+}
+
+build {
+	dependsOn copyLibs
 }

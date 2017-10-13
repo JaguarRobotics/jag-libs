@@ -218,3 +218,5 @@ Temporary Items
 
 .classpath
 .project
+
+*/.gitignore
