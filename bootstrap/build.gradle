@@ -3,6 +3,7 @@ apply plugin: "java"
 
 repositories {
 	jcenter()
+	mavenCentral()
     maven {
         url "http://first.wpi.edu/FRC/roborio/maven/release/"
     }
@@ -20,6 +21,9 @@ dependencies {
     compile "edu.wpi.first.wpilibj:wpilibJavaFinal:0.1.0-SNAPSHOT"
     library "io.moquette:moquette-broker:0.10"
     library "org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.0.2"
+    library "org.apache.logging.log4j:log4j-api:2.9.1"
+    library "org.apache.logging.log4j:log4j-core:2.9.1"
+    library "org.apache.logging.log4j:log4j-slf4j-impl:2.9.1"
 }
 
 sourceSets {
@@ -47,10 +51,7 @@ ant.importBuild("build.xml") { target ->
     target == "deploy" ? "deploy" : "wpi_" + target
 }
 
-task copyLibs(type: Copy) {
-	from configurations.library
-	into System.getProperty("user.home") + "/wpilib/user/java/lib"
-}
+task copyLibs(type: CopyLibsTask)
 
 wpi_compile {
 	dependsOn copyLibs
@@ -58,4 +59,35 @@ wpi_compile {
 
 build {
 	dependsOn copyLibs
+}
+
+import java.util.jar.JarEntry
+import java.util.jar.JarInputStream
+import java.util.jar.JarOutputStream
+
+class CopyLibsTask extends DefaultTask {
+	@TaskAction
+	def run() {
+		File wpi = new File(System.getProperty("user.home"), "wpilib/user/java/lib")
+		project.configurations.library.each { src ->
+			File target = new File(wpi, src.getName())
+			if (!target.exists()) {
+				JarInputStream jin = new JarInputStream(new FileInputStream(src))
+				JarOutputStream jout = new JarOutputStream(new FileOutputStream(target))
+				try {
+					JarEntry ent;
+					while ((ent = jin.getNextJarEntry()) != null) {
+						if (!ent.isDirectory() && (!ent.getName().startsWith("META-INF") || !(ent.getName().endsWith(".SF") || ent.getName().endsWith(".RSA")))) {
+							jout.putNextEntry(ent)
+							jout << jin
+							jout.closeEntry()
+						}
+					}
+				} finally {
+					jout.close()
+					jin.close()
+				}
+			}
+		}
+	}
 }
