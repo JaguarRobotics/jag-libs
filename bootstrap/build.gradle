@@ -20,9 +20,6 @@ dependencies {
     compile "edu.wpi.first.wpilib.networktables.java:NetworkTables:3.0.0-SNAPSHOT"
     compile "edu.wpi.first.wpilibj:wpilibJavaFinal:0.1.0-SNAPSHOT"
     library "io.moquette:moquette-broker:0.10"
-    library "org.apache.logging.log4j:log4j-api:2.9.1"
-    library "org.apache.logging.log4j:log4j-core:2.9.1"
-    library "org.apache.logging.log4j:log4j-slf4j-impl:2.9.1"
     library rootProject
 }
 
@@ -51,7 +48,16 @@ ant.importBuild("build.xml") { target ->
     target == "deploy" ? "deploy" : "wpi_" + target
 }
 
-task copyLibs(type: CopyLibsTask)
+File wpi = new File(System.getProperty("user.home"), "wpilib/user/java/lib")
+
+task cleanJagLibs(type: Delete) {
+	delete new File(wpi, "jaglibs.jar")
+}
+
+task copyLibs(type: CopyLibsTask) {
+	dependsOn ":jar"
+	dependsOn cleanJagLibs
+}
 
 wpi_compile {
 	dependsOn copyLibs

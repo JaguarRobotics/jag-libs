@@ -5,12 +5,15 @@ import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import com.github.jaguarrobotics.jaglibs.math.RealCoordinate;
 import com.github.jaguarrobotics.jaglibs.util.Pointer;
 
 public class DataSource {
+    private static final Logger                 log = LogManager.getLogger();
     private final NetClient                     client;
     private final String                        topic;
     private final Set<Consumer<RealCoordinate>> callbacks;
@@ -86,7 +89,19 @@ public class DataSource {
         try {
             client.client.getTopic(topic).publish(value.array(), qos, retain);
         } catch (MqttException ex) {
-            throw new IOException(ex);
+            switch (ex.getReasonCode()) {
+                case MqttException.REASON_CODE_CLIENT_NOT_CONNECTED:
+                case MqttException.REASON_CODE_CONNECTION_LOST:
+                    try {
+                        client.client.connect();
+                        client.client.getTopic(topic).publish(value.array(), qos, retain);
+                    } catch (MqttException e) {
+                        throw new IOException(e);
+                    }
+                    break;
+                default:
+                    throw new IOException(ex);
+            }
         }
     }
 
@@ -118,10 +133,12 @@ public class DataSource {
 
     @Override
     protected void finalize() throws Throwable {
+        log.debug("Unsubscribing from '{}'.", topic);
         client.client.unsubscribe(topic);
     }
 
     DataSource(NetClient client, String topic) throws IOException {
+        log.debug("Subscribing to '{}'.", topic);
         this.client = client;
         this.topic = topic;
         callbacks = new HashSet<Consumer<RealCoordinate>>();

@@ -1,4 +1,4 @@
-package com.github.jaguarrobotics.jaglibs.plugin.gettargetip;
+package com.github.jaguarrobotics.jaglibs.net.targetip;
 
 interface IPossibleTarget {
     String getProtocolName();

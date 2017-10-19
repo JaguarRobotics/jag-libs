@@ -1,34 +1,60 @@
 package com.github.jaguarrobotics.jaglibs;
 
 import java.util.Scanner;
-import com.github.jaguarrobotics.jaglibs.mqtt.MQTTServer;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import com.github.jaguarrobotics.jaglibs.logging.NetworkEgressAppender;
+import com.github.jaguarrobotics.jaglibs.logging.NetworkLogSource;
+import com.github.jaguarrobotics.jaglibs.net.NetServer;
+import com.github.jaguarrobotics.jaglibs.net.WpiBasedFactories;
 
 public class Robot implements IIterativeRobot {
-    private MQTTServer server;
+    private static final Logger log = LogManager.getLogger();
+    private NetServer           server;
+    private Runnable            stop;
 
     @Override
     public void robotInit() {
         try {
+            log.info("Starting server...");
             server.start();
+            new NetworkLogSource(server);
+            NetworkEgressAppender.setClient(server);
+            new WpiBasedFactories(server);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            log.fatal("Unable to start server");
+            log.catching(ex);
+        } finally {
+            stop = () -> {};            
         }
     }
 
     @Override
     public void disabledInit() {
+        stop.run();
+        server.getLifecycle().disabledStart();
+        stop = server.getLifecycle()::disabledEnd;
     }
 
     @Override
     public void autonomousInit() {
+        stop.run();
+        server.getLifecycle().autonomousStart();
+        stop = server.getLifecycle()::autonomousEnd;
     }
 
     @Override
     public void teleopInit() {
+        stop.run();
+        server.getLifecycle().teleopStart();
+        stop = server.getLifecycle()::teleopEnd;
     }
 
     @Override
     public void testInit() {
+        stop.run();
+        server.getLifecycle().testStart();
+        stop = server.getLifecycle()::testEnd;
     }
 
     @Override
@@ -65,7 +91,7 @@ public class Robot implements IIterativeRobot {
             System.out.println();
             System.out.println("disabled            auto                autonomous          tele");
             System.out.println("teleop              test                exit                kill");
-            System.out.println("quit");
+            System.out.println("quit                stop");
             System.out.println();
             System.out.println();
             while (method != null) {
@@ -93,6 +119,7 @@ public class Robot implements IIterativeRobot {
                             break;
                         case "exit":
                         case "kill":
+                        case "stop":
                         case "quit":
                             method = null;
                             break;
@@ -104,6 +131,10 @@ public class Robot implements IIterativeRobot {
     }
 
     public Robot() {
-        server = new MQTTServer();
+        try {
+            server = new NetServer();
+        } catch (Exception ex) {
+            log.catching(ex);
+        }
     }
 }

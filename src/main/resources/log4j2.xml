@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration packages="com.github.jaguarrobotics.jaglibs.logging">
+	<Appenders>
+		<NetworkEgressAppender name="Egress" />
+		<NetworkIngressAppender name="Ingress">
+			<PatternLayout pattern="[%d{HH:mm:ss.SSS}] [%-30c{1.}] [%-5level] %msg%n" />
+		</NetworkIngressAppender>
+	</Appenders>
+	<Loggers>
+		<Root level="all">
+			<AppenderRef ref="Ingress" level="warn" />
+			<AppenderRef ref="Egress" />
+		</Root>
+		<Logger name="com.github.jaguarrobotics.jaglibs" level="all" additivity="false">
+			<AppenderRef ref="Ingress" level="debug" />
+			<AppenderRef ref="Egress" />
+		</Logger>
+		<Logger name="io.moquette.persistence.MemorySessionStore" level="all" additivity="false">
+			<AppenderRef ref="Ingress" level="fatal" />
+			<AppenderRef ref="Egress" />
+		</Logger>
+		<Logger name="io.moquette.server.Server" level="all" additivity="false">
+			<AppenderRef ref="Ingress" level="error" />
+			<AppenderRef ref="Egress" />
+		</Logger>
+		<Logger name="io.moquette.spi.impl.PersistentQueueMessageSender" level="all" additivity="false">
+			<AppenderRef ref="Ingress" level="error" />
+			<AppenderRef ref="Egress" />
+		</Logger>
+		<Logger name="io.netty.bootstrap.ServerBootstrap" level="all" additivity="false">
+			<AppenderRef ref="Ingress" level="error" />
+			<AppenderRef ref="Egress" />
+		</Logger>
+	</Loggers>
+</Configuration>

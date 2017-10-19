@@ -16,12 +16,15 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 public class NetClient implements AutoCloseable, MqttCallback {
-    final MqttClient                             client;
+    MqttClient                                   client;
     final Map<String, WeakReference<DataSource>> dataSources;
     final Set<DataSource>                        strongReferences;
+    protected Lifecycle                          lifecycle;
+    private MessageDispatchThread                loop;
 
     @Override
     public void close() throws Exception {
+        loop.interrupt();
         client.disconnect();
     }
 
@@ -31,18 +34,7 @@ public class NetClient implements AutoCloseable, MqttCallback {
 
     @Override
     public void messageArrived(String topic, MqttMessage message) throws Exception {
-        if (dataSources.containsKey(topic)) {
-            WeakReference<DataSource> ref = dataSources.get(topic);
-            DataSource src = ref.get();
-            if (src == null) {
-                client.unsubscribe(topic);
-                dataSources.remove(topic, ref);
-            } else {
-                src.messageArrived(message);
-            }
-        } else {
-            client.unsubscribe(topic);
-        }
+        loop.queueMessage(topic, message);
     }
 
     @Override
@@ -68,18 +60,37 @@ public class NetClient implements AutoCloseable, MqttCallback {
         return src;
     }
 
-    public NetClient(String host) throws IOException {
+    public Lifecycle getLifecycle() {
+        return lifecycle;
+    }
+
+    protected void createLifecycle() throws IOException {
+        lifecycle = new RemoteLifecycle(this);
+    }
+
+    protected void connect(String host) throws IOException {
         try {
             client = new MqttClient(String.format("tcp://%s:1883", host), MqttClient.generateClientId(),
                             new MemoryPersistence());
-            dataSources = Collections.synchronizedMap(new HashMap<String, WeakReference<DataSource>>());
-            strongReferences = Collections.synchronizedSet(new HashSet<DataSource>());
             MqttConnectOptions opts = new MqttConnectOptions();
             opts.setCleanSession(true);
-            client.connect(opts);
             client.setCallback(this);
+            client.connect(opts);
+            loop = new MessageDispatchThread(this);
+            loop.start();
+            createLifecycle();
         } catch (MqttException ex) {
             throw new IOException(ex);
         }
+    }
+
+    protected NetClient() {
+        dataSources = Collections.synchronizedMap(new HashMap<String, WeakReference<DataSource>>());
+        strongReferences = Collections.synchronizedSet(new HashSet<DataSource>());
+    }
+
+    public NetClient(String host) throws IOException {
+        this();
+        connect(host);
     }
 }

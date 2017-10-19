@@ -1,24 +1,36 @@
 package com.github.jaguarrobotics.jaglibs.plugin;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.java.archives.Attributes;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.bundling.Jar;
-import com.github.jaguarrobotics.jaglibs.plugin.gettargetip.GetTargetIPTask;
 
 public class JagLibsPlugin implements Plugin<Project> {
+    private static final Logger log = Logging.getLogger(JagLibsPlugin.class);
+
+    public void applyAfter(Project project) {
+        Jar jar = (Jar) project.getTasks().getByName("jar");
+        List<Object> files = new ArrayList<Object>();
+        for (File file : project.getConfigurations().getByName("compile")) {
+            if (file.isDirectory()) {
+                files.add(file);
+            } else {
+                files.add(project.zipTree(file));
+            }
+        }
+        jar.from(files);
+    }
+    
     @Override
     public void apply(Project project) {
-        project.getExtensions().create("jaglibs", JagLibsPluginExtension.class);
-        GetTargetIPTask getTargetIP = project.getTasks().create("get-target-ip", GetTargetIPTask.class);
-        DependenciesTask dependencies = project.getTasks().create("dependencies", DependenciesTask.class);
-        dependencies.dependsOn(getTargetIP);
-        DeployTask deploy = project.getTasks().create("deploy", DeployTask.class);
         Jar jar = (Jar) project.getTasks().getByName("jar");
-        deploy.dependsOn(jar, getTargetIP, dependencies);
         Attributes attr = jar.getManifest().getAttributes();
-        attr.put("Main-Class", "edu.wpi.first.wpilibj.RobotBase");
-        attr.put("Robot-Class", "com.github.jaguarrobotics.jaglibs.Robot");
-        attr.put("Class-Path", ".");
+        attr.put("Main-Class", "com.github.jaguarrobotics.jaglibs.Main");
+        project.afterEvaluate(this::applyAfter);
     }
 }

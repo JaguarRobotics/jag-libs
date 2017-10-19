@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot>
+	<!--
+		<teleop>
+			<TankDrive>
+				<left motor="/motors/left" joystick="/joysticks/left" />
+				<right motor="/motors/right" joystick="/joysticks/right" />
+			</TankDrive>
+		</teleop>
+		<configuration>
+			<motors>
+				<Talon name="left" port="0" />
+				<Talon name="right" port="1" />
+				<Spark name="climb" port="2" />
+				<Solenoid name="shift" port="0" />
+				<Solenoid name="valve" port="1" />
+			</motors>
+			<encoders>
+				<Encoder name="left" portA="0" portB="1" />
+				<Encoder name="right" portA="2" portB="3" />
+			</encoders>
+			<joysticks>
+				<Joystick name="left" port="1" />
+				<Joystick name="right" port="2" />
+				<Joystick name="manipulator" port="3" />
+			</joysticks>
+		</configuration>
+	-->
+	<configuration>
+		<Clock name="time" />
+		<BootClock name="bootTime" />
+	</configuration>
+</robot>
